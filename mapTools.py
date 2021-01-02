@@ -3,9 +3,7 @@ Created on Fri Dec 11 19:33:07 2020
 
 @author: Robert Kerr
 
-Minotaur map builder
-
-Contains map layout template, colours
+Tools for creating walls, colours, etc in Minotaurus
 """
 
 def r(entries):
@@ -74,18 +72,13 @@ minoStartpoints=[[14,13],[15,13],[16,13],[17,13],
                  [18,14],[18,15],[18,16],[18,17],
                  [14,18],[15,18],[16,18],[17,18]]
 
-class colour:
-    def __init__(self):
-        #Defining colours used on board
-        self.darkGreen = (0,100,100)
-        self.lightGreen = (128,255,0)
-        self.blue = (0,128,255)
-        self.red = (255,0,0)
-        self.yellow = (255,255,0)
-        self.white = (250,250,250)
-        self.grey = (192,192,192)
-        self.darkGrey = (100,100,100)
-        self.black = (10,10,10)
-        self.magenta = (128,0,128)
-        
-colours = colour()
+darkGreen = (0,100,100)
+lightGreen = (128,255,0)
+blue = (0,128,255)
+red = (255,0,0)
+yellow = (255,255,0)
+white = (250,250,250)
+grey = (192,192,192)
+darkGrey = (100,100,100)
+black = (10,10,10)
+magenta = (128,0,128)
