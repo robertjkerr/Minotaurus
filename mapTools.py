@@ -3,8 +3,19 @@ Created on Fri Dec 11 19:33:07 2020
 
 @author: Robert Kerr
 
-Tools for creating walls, colours, etc in Minotaurus
+pygame window initiation and contains tools for creating walls, colours, etc in Minotaurus
 """
+
+import pygame
+import numpy as np
+
+#Initial functions and params for pygame window
+pygame.init()
+size=(1000,800)
+boardSize=(800,800)
+screen = pygame.display.set_mode(size)
+pygame.display.set_caption('Minotaur')
+
 
 def r(entries):
     row = [1]
@@ -18,7 +29,7 @@ def r(entries):
         state = not state
     row.append(1)
     return row
-      
+
 fixedWalls = [r([0,30]),
            r([30]),
           r([30]),
@@ -82,3 +93,66 @@ grey = (192,192,192)
 darkGrey = (100,100,100)
 black = (10,10,10)
 magenta = (128,0,128)
+
+
+boxSize=size[1]/len(fixedWalls)
+font = pygame.font.SysFont(None,25)
+
+#Draws an individual square on board
+def drawSquare(pos,colour):
+    pygame.draw.rect(screen,colour,(pos[0]*boxSize,pos[1]*boxSize,boxSize,boxSize))
+
+#Draws fixed objects and grey walls on map
+def drawMap(grid):
+    r=0
+    c=0
+    for row in grid:
+        for box in row:
+            if box==1:
+                drawSquare([c,r],lightGreen)
+            elif box==0:
+                drawSquare([c,r],darkGreen)
+            c+=1
+        r+=1
+        c=0
+    drawSquare([33,10],grey)
+    bsquares=startpoints[0]+finishpoints[0]
+    rsquares=startpoints[1]+finishpoints[1]
+    ysquares=startpoints[2]+finishpoints[2]
+    wsquares=startpoints[3]+finishpoints[3]
+    for s in wsquares:
+        drawSquare(s,white)
+    for s in bsquares:
+        drawSquare(s,blue)
+    for s in rsquares:
+        drawSquare(s,red)
+    for s in ysquares:
+        drawSquare(s,yellow)
+    drawSquare([15,15],grey)
+    drawSquare([15,16],grey)
+    drawSquare([16,15],grey)
+    drawSquare([16,16],grey)
+
+#Draws all grey walls on board
+def drawWalls():
+    for w in walls:
+        w0 = np.array(w[0])
+        w1 = np.array(w[1])
+        drawSquare(w0,darkGrey)
+        drawSquare(w1,darkGrey)
+        v = w1-w0
+        v0= w1-w0
+        if v[0]>0 or v[1]>0:
+            v+=np.array([1,1])
+        elif v[1]<0:
+            v+=np.array([1,-1])
+        elif v[0]<0:
+            v+=np.array([-1,1])
+        pygame.draw.rect(screen,grey,(w0[0]*boxSize+2,w0[1]*boxSize+2,boxSize-4,boxSize-4))
+        pygame.draw.rect(screen,grey,(w1[0]*boxSize+2,w1[1]*boxSize+2,boxSize-4,boxSize-4))
+        pygame.draw.rect(screen,grey,((w0[0]+v0[0]/2)*boxSize+2,(w0[1]+v0[1]/2)*boxSize+2,boxSize-4,boxSize-4))
+      
+#Draws an individual circle which consists of a black circle filled with figure colour
+def drawCircle(pos,colour):
+    pygame.draw.circle(screen,black,(boxSize*(pos[0]+0.5),boxSize*(pos[1]+0.5)),boxSize/2 - 1)
+    pygame.draw.circle(screen,colour,(boxSize*(pos[0]+0.5),boxSize*(pos[1]+0.5)),boxSize/2 - 3)

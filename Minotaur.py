@@ -6,21 +6,11 @@ Created on Thu Dec 10 15:38:00 2020
 Lego Minotauraus, Covid Christmas 2020..or not..maybe a bit later
 """
 
-import pygame
-import numpy as np
+#Imports data and functions from mapTools.py. Note that mapTools contains both numpy and pygame
 import mapTools
 
-#Initial functions and params for pygame window
-pygame.init()
-size=(1000,800)
-boardSize=(800,800)
-screen = pygame.display.set_mode(size)
-pygame.display.set_caption('Minotaur')
-boxSize=size[1]/len(mapTools.fixedWalls)
-font = pygame.font.SysFont(None,25)
-
 #Board grid initiation. 0 for empty, 1 for fixed wall, 2 for grey wall, 3 for figure, 4 for minotaur, 5 for finish points
-fixedWalls = np.array(mapTools.fixedWalls)
+fixedWalls = mapTools.np.array(mapTools.fixedWalls)
 grid=fixedWalls
 for c in mapTools.finishpoints:
     for p in c:
@@ -28,9 +18,9 @@ for c in mapTools.finishpoints:
 
 #Returns mouse position as a grid position
 def mousePos():
-    pos = pygame.mouse.get_pos()
-    x = int((pos[0] - pos[0]%boxSize)/boxSize)
-    y = int((pos[1] - pos[1]%boxSize)/boxSize)
+    pos = mapTools.pygame.mouse.get_pos()
+    x = int((pos[0] - pos[0]%mapTools.boxSize)/mapTools.boxSize)
+    y = int((pos[1] - pos[1]%mapTools.boxSize)/mapTools.boxSize)
     return [x,y]
 
 #Removes duplicate values of every element in arguement list
@@ -74,7 +64,7 @@ class walls:
         self.initChoices = ([0,1],[0,-1],[1,0],[-1,0])
         if grid[p[1]][p[0]]==0 and self.movingWall==None:
             for m in self.initChoices:
-                newp = np.array(p)+np.array(m)
+                newp = mapTools.np.array(p)+mapTools.np.array(m)
                 if grid[newp[1]][newp[0]]==0:
                     self.movingWall = [p]
                     
@@ -85,10 +75,30 @@ class walls:
             if newp==p:
                 self.movingWall=None
             else:
-                moveChoices = [list(np.array(p)+np.array(m)) for m in self.initChoices
-                                if grid[(np.array(p)+np.array(m))[1]][(np.array(p)+np.array(m))[0]]==0]
+                moveChoices = [list(mapTools.np.array(p)+mapTools.np.array(m)) for m in self.initChoices
+                                if grid[(mapTools.np.array(p)+mapTools.np.array(m))[1]][(mapTools.np.array(p)+mapTools.np.array(m))[0]]==0]
                 if newp in moveChoices:
                     self.movingWall.append(newp)
+
+    def moveWall(self):
+        if controller.dice=='Wall' and mousePos()[0]<33 and mousePos()[1]<33 and controller.turn()[1].moveReady==True:
+            if grid[mousePos()[1]][mousePos()[0]]==2 and controller.turn()[1].walldel==True:
+                self.movingWall = None
+                self.delWall()
+            else:
+                if self.movingWall==None:
+                    self.checkWall1()
+                elif len(self.movingWall)==1:
+                    self.checkWall2()
+                    if self.movingWall!=None:
+                        self.move(walls.movingWall)
+                        self.movingWall=None
+                        controller.turn()[1].moveReady=False
+
+    def drawMovingWall(self):
+        if self.movingWall!=None:
+            if len(self.movingWall)==1:
+                mapTools.drawSquare(self.movingWall[0],mapTools.magenta)
             
 walls = walls()
 
@@ -96,7 +106,7 @@ walls = walls()
 class figure:
     def __init__(self,colour,pos,fps):
         self.colour = colour
-        self.pos = np.array(pos)
+        self.pos = mapTools.np.array(pos)
         self.play = True
         self.finishPoints=fps
         grid[self.pos[1]][self.pos[0]]=3
@@ -111,7 +121,7 @@ class figure:
                 initChoices = ([0,1],[0,-1],[1,0],[-1,0])
                 for p in posLayer:
                     for i in initChoices:
-                        newp = np.array(p)+np.array(i)
+                        newp = mapTools.np.array(p)+mapTools.np.array(i)
                         if grid[newp[1]][newp[0]]==0:
                             newPosLayer.append(list(newp))
                         elif grid[newp[1]][newp[0]]==5:
@@ -128,7 +138,7 @@ class figure:
     def move(self,pos,roll):
         if pos in self.moveChoices(roll):
             grid[self.pos[1]][self.pos[0]]=0
-            self.pos=np.array(pos)
+            self.pos=mapTools.np.array(pos)
             grid[self.pos[1]][self.pos[0]]=3
             controller.turn()[1].moveReady=False
           
@@ -167,10 +177,11 @@ class minotaur:
             initChoices = ([0,1],[0,-1],[1,0],[-1,0])
             for p in posLayer:
                 for i in initChoices:
-                    newp = np.array(p)+np.array(i)
+                    newp = mapTools.np.array(p)+mapTools.np.array(i)
                     if grid[newp[1]][newp[0]]==0:
                         newPosLayer.append(list(newp))
                     elif grid[newp[1]][newp[0]]==3:
+                        newPosLayer.append(list(newp))
                         compList.append(list(newp))
             m-=1
             newPosLayer=removeDuplicates(newPosLayer)
@@ -186,15 +197,25 @@ class minotaur:
     def move(self,pos):
         if tuple(self.pos)==self.initPos:
             if pos in self.moveChoices():
-                self.pos=np.array(pos)
+                self.pos=mapTools.np.array(pos)
                 grid[self.pos[1]][self.pos[0]]=4
                 controller.turn()[1].moveReady=False
         else:
             if pos in self.moveChoices():
                 grid[self.pos[1]][self.pos[0]]=0
-                self.pos=np.array(pos)
+                self.pos=mapTools.np.array(pos)
                 grid[self.pos[1]][self.pos[0]]=4
                 controller.turn()[1].moveReady=False
+
+    #Checks if minotaur is on top of a figure, sending them back to start
+    def kill(self):
+        for p in [controller.pb,controller.pr,controller.py,controller.pw]:
+            for f in p.figs:
+                if list(self.pos)==list(f.pos):
+                    self.pos=self.initPos
+                    grid[f.pos[1]][f.pos[0]]=0
+                    f.pos=p.startPos[p.figs.index(f)]
+                    grid[f.pos[1]][f.pos[0]]=3
 
 minotaur = minotaur()
 
@@ -213,7 +234,7 @@ class controller:
     #Rolls the dice and initiates next turn
     def rollDice(self):
         if mousePos() == [33,10]:
-            self.dice = np.random.randint(1,7)
+            self.dice = mapTools.np.random.randint(1,7)
             if self.dice == 2:
                 self.dice = 'Minotaur'
             if self.dice == 1:
@@ -232,16 +253,16 @@ class controller:
         return [['Blue',self.pb],['Red',self.pr],['Yellow',self.py],['White',self.pw]][self.t]
 
     def diceText(self):
-        screenText = font.render(str(self.dice),True,mapTools.black)
+        mapTools.screenText = mapTools.font.render(str(self.dice),True,mapTools.black)
         for i in range(4):
-            drawSquare([33+i,9],mapTools.white)
-        screen.blit(screenText,[33*boxSize,9*boxSize])
+            mapTools.drawSquare([33+i,9],mapTools.white)
+        mapTools.screen.blit(mapTools.screenText,[33*mapTools.boxSize,9*mapTools.boxSize])
 
     def turnText(self):
-        screenText = font.render('Turn: ' + str(self.turn()[0]),True,mapTools.black)
+        mapTools.screenText = mapTools.font.render('Turn: ' + str(self.turn()[0]),True,mapTools.black)
         for i in range(8):
-            drawSquare([33+i,7],mapTools.white)
-        screen.blit(screenText,[33*boxSize,7*boxSize])
+            mapTools.drawSquare([33+i,7],mapTools.white)
+        mapTools.screen.blit(mapTools.screenText,[33*mapTools.boxSize,7*mapTools.boxSize])
 
     #Checks if a figure is at finish point, removing them from play
     def checkpos(self):
@@ -255,14 +276,17 @@ class controller:
 
     def showMoves(self):
         if self.selectedFig!=None:
-            if self.dice=='Minotaur':
-                for m in minotaur.moveChoices():
-                    drawSquare(m,mapTools.magenta)
-            else:
-                if self.selectedFig!=None:
+            if self.turn()[1].moveReady==True:
+                if self.dice=='Minotaur':
+                    for m in minotaur.moveChoices():
+                        mapTools.drawSquare(m,mapTools.magenta)
+                elif self.selectedFig!=None:
                     if list(self.selectedFig.pos) in self.turn()[1].startPos and self.dice==6:
                         for m in self.selectedFig.moveChoices(self.dice):
-                            drawSquare(m,mapTools.magenta)
+                            mapTools.drawSquare(m,mapTools.magenta)
+                    elif list(self.selectedFig.pos) not in self.turn()[1].startPos:
+                        for m in self.selectedFig.moveChoices(self.dice):
+                            mapTools.drawSquare(m,mapTools.magenta)
 
     def selectFig(self):
         if self.dice=='Minotaur':
@@ -274,168 +298,83 @@ class controller:
 
     def moveFig(self):
         if self.selectedFig!=None and self.turn()[1].moveReady==True:
-            if self.selectedFig!=minotaur and list(self.selectedFig.pos) in self.turn()[1].startPos and self.dice==6:
-                self.selectedFig.move(mousePos(),self.dice)
+            if self.selectedFig!=minotaur: 
+                if list(self.selectedFig.pos) in self.turn()[1].startPos and self.dice==6:
+                    self.selectedFig.move(mousePos(),self.dice)
+                elif list(self.selectedFig.pos) not in self.turn()[1].startPos:
+                    self.selectedFig.move(mousePos(),self.dice)
             elif self.selectedFig==minotaur:
                 self.selectedFig.move(mousePos())
 
-    #Checks if minotaur is on top of a figure, sending them back to start
-    def kill(self):
-        for p in [self.pb,self.pr,self.py,self.pw]:
-            for f in p.figs:
-                if list(minotaur.pos)==list(f.pos):
-                    minotaur.pos=minotaur.initPos
-                    grid[f.pos[1]][f.pos[0]]=0
-                    f.pos=p.startPos[p.figs.index(f)]
-                    grid[f.pos[1]][f.pos[0]]=3
-                    
-    def moveWall(self):
-        if self.dice=='Wall' and mousePos()[0]<33 and mousePos()[1]<33 and self.turn()[1].moveReady==True:
-            if grid[mousePos()[1]][mousePos()[0]]==2 and self.turn()[1].walldel==True:
-                walls.movingWall = None
-                walls.delWall()
-            else:
-                if walls.movingWall==None:
-                    walls.checkWall1()
-                elif len(walls.movingWall)==1:
-                    walls.checkWall2()
-                    if walls.movingWall!=None:
-                        walls.move(walls.movingWall)
-                        walls.movingWall=None
-                        self.turn()[1].moveReady=False
-
-    def drawMovingWall(self):
-        if walls.movingWall!=None:
-            if len(walls.movingWall)==1:
-                drawSquare(walls.movingWall[0],mapTools.magenta)
-
 controller = controller()
 
-#Draws an individual square on board
-def drawSquare(pos,colour):
-    pygame.draw.rect(screen,colour,(pos[0]*boxSize,pos[1]*boxSize,boxSize,boxSize))
-
-#Draws fixed objects and grey walls on map
-def drawMap(grid):
-    r=0
-    c=0
-    for row in grid:
-        for box in row:
-            if box==1:
-                drawSquare([c,r],mapTools.lightGreen)
-            elif box==0:
-                drawSquare([c,r],mapTools.darkGreen)
-            c+=1
-        r+=1
-        c=0
-    drawSquare([33,10],mapTools.grey)
-    bsquares=mapTools.startpoints[0]+mapTools.finishpoints[0]
-    rsquares=mapTools.startpoints[1]+mapTools.finishpoints[1]
-    ysquares=mapTools.startpoints[2]+mapTools.finishpoints[2]
-    wsquares=mapTools.startpoints[3]+mapTools.finishpoints[3]
-    for s in wsquares:
-        drawSquare(s,mapTools.white)
-    for s in bsquares:
-        drawSquare(s,mapTools.blue)
-    for s in rsquares:
-        drawSquare(s,mapTools.red)
-    for s in ysquares:
-        drawSquare(s,mapTools.yellow)
-    drawSquare([15,15],mapTools.grey)
-    drawSquare([15,16],mapTools.grey)
-    drawSquare([16,15],mapTools.grey)
-    drawSquare([16,16],mapTools.grey)
-    
-#Draws all grey walls on board
-def drawWalls():
-    for w in mapTools.walls:
-        w0 = np.array(w[0])
-        w1 = np.array(w[1])
-        drawSquare(w0,mapTools.darkGrey)
-        drawSquare(w1,mapTools.darkGrey)
-        v = w1-w0
-        v0= w1-w0
-        if v[0]>0 or v[1]>0:
-            v+=np.array([1,1])
-        elif v[1]<0:
-            v+=np.array([1,-1])
-        elif v[0]<0:
-            v+=np.array([-1,1])
-        pygame.draw.rect(screen,mapTools.grey,(w0[0]*boxSize+2,w0[1]*boxSize+2,boxSize-4,boxSize-4))
-        pygame.draw.rect(screen,mapTools.grey,(w1[0]*boxSize+2,w1[1]*boxSize+2,boxSize-4,boxSize-4))
-        pygame.draw.rect(screen,mapTools.grey,((w0[0]+v0[0]/2)*boxSize+2,(w0[1]+v0[1]/2)*boxSize+2,boxSize-4,boxSize-4))
 
 #Compensates for magenta background on figures left behind by showing moves
 def redrawBacks():
     blue = controller.pb
     for i in range(3):
-        drawSquare(blue.figs[i].pos,mapTools.darkGreen)
+        mapTools.drawSquare(blue.figs[i].pos,mapTools.darkGreen)
     red = controller.pr
     for i in range(3):
-        drawSquare(red.figs[i].pos,mapTools.darkGreen)
+        mapTools.drawSquare(red.figs[i].pos,mapTools.darkGreen)
     yellow = controller.py
     for i in range(3):
-        drawSquare(yellow.figs[i].pos,mapTools.darkGreen)
+        mapTools.drawSquare(yellow.figs[i].pos,mapTools.darkGreen)
     white = controller.pw
     for i in range(3):
-        drawSquare(white.figs[i].pos,mapTools.darkGreen)
-    drawSquare(minotaur.pos,mapTools.darkGreen)
-
-#Draws an individual circle which consists of a black circle filled with figure colour
-def drawCircle(pos,colour):
-    pygame.draw.circle(screen,mapTools.black,(boxSize*(pos[0]+0.5),boxSize*(pos[1]+0.5)),boxSize/2 - 1)
-    pygame.draw.circle(screen,colour,(boxSize*(pos[0]+0.5),boxSize*(pos[1]+0.5)),boxSize/2 - 3)
+        mapTools.drawSquare(white.figs[i].pos,mapTools.darkGreen)
+    mapTools.drawSquare(minotaur.pos,mapTools.darkGreen)
 
 #Draws all 12 figures and the minotaur on the board
 def drawFigs():
     blue = controller.pb
     for i in range(3):
-        drawCircle(blue.figs[i].pos,mapTools.blue)
+        mapTools.drawCircle(blue.figs[i].pos,mapTools.blue)
     red = controller.pr
     for i in range(3):
-        drawCircle(red.figs[i].pos,mapTools.red)
+        mapTools.drawCircle(red.figs[i].pos,mapTools.red)
     yellow = controller.py
     for i in range(3):
-        drawCircle(yellow.figs[i].pos,mapTools.yellow)
+        mapTools.drawCircle(yellow.figs[i].pos,mapTools.yellow)
     white = controller.pw
     for i in range(3):
-        drawCircle(white.figs[i].pos,mapTools.white)
-    drawCircle(minotaur.pos,mapTools.black)
+        mapTools.drawCircle(white.figs[i].pos,mapTools.white)
+    mapTools.drawCircle(minotaur.pos,mapTools.black)
 
 #Main game loop
 def gameLoop():
     carryOn = True
-    clock = pygame.time.Clock()
-    screen.fill(mapTools.white)
+    clock = mapTools.pygame.time.Clock()
+    mapTools.screen.fill(mapTools.white)
     
     while carryOn:
-        for event in pygame.event.get():
-            if event.type==pygame.QUIT:
+        for event in mapTools.pygame.event.get():
+            if event.type==mapTools.pygame.QUIT:
                 carryOn = False
             #All things that can happen with mouse button pressed    
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == mapTools.pygame.MOUSEBUTTONDOWN:
                 controller.rollDice()
                 controller.selectFig()
                 controller.moveFig()
-                controller.moveWall()
+                walls.moveWall()
                 
         #Position checking
         controller.checkpos()
-        controller.kill()
+        minotaur.kill()
 
         #Draws all objects on board
         redrawBacks()
-        drawMap(grid)
-        drawWalls()
+        mapTools.drawMap(grid)
+        mapTools.drawWalls()
         controller.diceText()
         controller.turnText()
         if controller.selectedFig!=None:
             controller.showMoves()
-        controller.drawMovingWall()
+        walls.drawMovingWall()
         drawFigs()
         
         clock.tick(60)
-        pygame.display.flip()
-    pygame.quit()
+        mapTools.pygame.display.flip()
+    mapTools.pygame.quit()
         
 gameLoop()
