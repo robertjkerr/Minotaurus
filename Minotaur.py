@@ -70,6 +70,7 @@ class walls:
                     
     def checkWall2(self):
         newp = mousePos()
+        correct = False
         if self.movingWall!=None:
             p = self.movingWall[0]
             if newp==p:
@@ -79,6 +80,8 @@ class walls:
                                 if grid[(mapTools.np.array(p)+mapTools.np.array(m))[1]][(mapTools.np.array(p)+mapTools.np.array(m))[0]]==0]
                 if newp in moveChoices:
                     self.movingWall.append(newp)
+                    correct = True
+                return correct
 
     def moveWall(self):
         if controller.dice=='Wall' and mousePos()[0]<33 and mousePos()[1]<33 and controller.turn()[1].moveReady==True:
@@ -89,11 +92,12 @@ class walls:
                 if self.movingWall==None:
                     self.checkWall1()
                 elif len(self.movingWall)==1:
-                    self.checkWall2()
+                    correct = self.checkWall2()
                     if self.movingWall!=None:
-                        self.move(walls.movingWall)
-                        self.movingWall=None
-                        controller.turn()[1].moveReady=False
+                        if correct == True:
+                            self.move(walls.movingWall)
+                            self.movingWall=None
+                            controller.turn()[1].moveReady=False
 
     def drawMovingWall(self):
         if self.movingWall!=None:
@@ -142,7 +146,7 @@ class figure:
             grid[self.pos[1]][self.pos[0]]=3
             controller.turn()[1].moveReady=False
           
-#Class for a player. Contains three figures
+#Class for a player, which acts as an intermediate class between figure and controller classes. Contains three figures
 class player:
     def __init__(self, colour, corner):  
         startPoints = mapTools.startpoints
@@ -153,16 +157,6 @@ class player:
         self.figselection = None
         self.moveReady = False
         self.walldel=False
-
-    def moves(self,roll):
-        moves=[]
-        self.figmoves=[]
-        for f in self.figs:
-            if f.play:
-                fmoves = f.moveChoices(roll)
-                self.figmoves.append(fmoves)
-                moves+=fmoves
-        return moves
 
 #Minotaur class. Similar to figure
 class minotaur:
