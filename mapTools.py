@@ -67,7 +67,7 @@ walls = [[[3,4],[3,5]],[[28,4],[28,5]],
          [[9,9],[10,9]],[[21,9],[22,9]],
          [[9,22],[10,22]],[[21,22],[22,22]],
          [[3,26],[3,27]],[[28,26],[28,27]]]
-        
+
 startpoints= [[[1,1],[1,2],[2,1]],
            [[29,1],[30,1],[30,2]],
            [[1,29],[2,30],[1,30]],
@@ -151,7 +151,7 @@ def drawWalls():
         pygame.draw.rect(screen,grey,(w0[0]*boxSize+2,w0[1]*boxSize+2,boxSize-4,boxSize-4))
         pygame.draw.rect(screen,grey,(w1[0]*boxSize+2,w1[1]*boxSize+2,boxSize-4,boxSize-4))
         pygame.draw.rect(screen,grey,((w0[0]+v0[0]/2)*boxSize+2,(w0[1]+v0[1]/2)*boxSize+2,boxSize-4,boxSize-4))
-      
+
 #Draws an individual circle which consists of a black circle filled with figure colour
 def drawCircle(pos,colour):
     pygame.draw.circle(screen,black,(boxSize*(pos[0]+0.5),boxSize*(pos[1]+0.5)),boxSize/2 - 1)

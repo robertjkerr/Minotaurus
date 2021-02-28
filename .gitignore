@@ -1,2 +1,4 @@
 setup.py
 __pycache__
+.spyproject
+.vscode
