@@ -37,13 +37,16 @@ class walls:
     def __init__(self):
         self.walls=mapTools.walls
         self.movingWall = None
+        #Sets the location of walls on grid as 2
         for w in self.walls:
             for i in w:
                 grid[i[1]][i[0]]=2
 
+    #Checks how many extra walls are available
     def extra(self):
         return 16-len(self.walls)
 
+    #Places a wall
     def move(self,wa):
         if self.extra()>0:
             self.walls.append(wa)
@@ -51,6 +54,7 @@ class walls:
             for i in w:
                 grid[i[1]][i[0]]=2
 
+    #Deletes a wall
     def delWall(self):
         for w in self.walls:
             if mousePos() in w:
@@ -58,9 +62,11 @@ class walls:
         self.walls.remove(w)
         grid[w[0][1]][w[0][0]]=0
         grid[w[1][1]][w[1][0]]=0
+        #Allows unlimited wall deletions per turn in cheat mode
         if cheatmode == False:
             controller.turn()[1].walldel=False
 
+    #Checks if the first part of a wall can placed
     def checkWall1(self):
         p = mousePos()
         self.initChoices = ([0,1],[0,-1],[1,0],[-1,0])
@@ -70,6 +76,7 @@ class walls:
                 if grid[newp[1]][newp[0]]==0:
                     self.movingWall = [p]
 
+    #Checks if the second part of a wall can be placed
     def checkWall2(self):
         newp = mousePos()
         correct = False
@@ -85,6 +92,7 @@ class walls:
                     correct = True
                 return correct
 
+    #Main wall moving function. Allows one wall deletion and one wall placement per turn
     def moveWall(self):
         if controller.dice=='Wall' and mousePos()[0]<33 and mousePos()[1]<33 and controller.turn()[1].moveReady==True:
             if grid[mousePos()[1]][mousePos()[0]]==2 and controller.turn()[1].walldel==True:
@@ -102,6 +110,7 @@ class walls:
                             if cheatmode == False:
                                 controller.turn()[1].moveReady=False
 
+    #Draws a magenta square to show where first wall part has been placed
     def drawMovingWall(self):
         if self.movingWall!=None:
             if len(self.movingWall)==1:
@@ -116,6 +125,7 @@ class figure:
         self.pos = mapTools.np.array(pos)
         self.play = True
         self.finishPoints=fps
+        #Sets figure's grid position to 3
         grid[self.pos[1]][self.pos[0]]=3
 
     #Creates list of places figure can move to given what was rolled on dice
@@ -143,6 +153,7 @@ class figure:
                 return []
         return removeDuplicates(pathFinder([self.pos],roll)+compList)
 
+    #Checks if selected position is a valid move choice and then moves figure
     def move(self,pos,roll):
         if pos in self.moveChoices(roll):
             grid[self.pos[1]][self.pos[0]]=0
@@ -159,6 +170,7 @@ class player:
         self.startPos = startPoints[corner]
         self.finishPos = finishPoints[corner]
         self.figs = [figure(colour,self.startPos[i],self.finishPos[i]) for i in range(3)]
+        #Status for figure selection and whether a turn is over or not
         self.figselection = None
         self.moveReady = False
         self.walldel=False
@@ -169,6 +181,7 @@ class minotaur:
         self.initPos=(15.5,15.5)
         self.pos = self.initPos
 
+    #Same as figure.moveChoices, but with adjustments for minotaur
     def moveChoices(self):
         compList=[] #Complementary list which contains figures closer than dice roll
         def pathFinder(posLayer, m):
@@ -193,6 +206,7 @@ class minotaur:
         else:
             return removeDuplicates(pathFinder([self.pos],8)+compList)
 
+    #Same as figure.moves
     def move(self,pos):
         if tuple(self.pos)==self.initPos:
             if pos in self.moveChoices():
@@ -226,6 +240,7 @@ class controller:
         self.t0 = 0
         self.t=0
         self.dice=4
+        #Player object init
         self.pb=player(mapTools.blue,0)
         self.pr=player(mapTools.red,1)
         self.py=player(mapTools.yellow,2)
@@ -235,9 +250,7 @@ class controller:
             self.pb.moveReady=True
             self.pb.walldel=True
 
-    def setDice(self,dice):
-        self.dice = dice
-
+    #Returns dice number, replaces wall and minotaur with 1 and 2 respectively
     def getDice(self):
         dice = self.dice
         if dice == 'Wall':
@@ -254,10 +267,11 @@ class controller:
                 dice = 'Minotaur'
             if dice == 1:
                 dice = 'Wall'
-            self.setDice(dice)
+            self.dice=dice
             self.selectedFig = None
             self.nextTurn()
 
+    #Moves to next player
     def nextTurn(self):
         self.t0 = (self.t0 + 1)%4
         self.t=[0,1,3,2][self.t0]
@@ -265,15 +279,18 @@ class controller:
         self.turn()[1].moveReady=True
         self.turn()[1].walldel=True
 
+    #Returns player colour text and player object
     def turn(self):
         return [['Blue',self.pb],['Red',self.pr],['Yellow',self.py],['White',self.pw]][self.t]
 
+    #Prints dice text on right hand side panel
     def diceText(self):
         mapTools.screenText = mapTools.font.render(str(self.dice),True,mapTools.black)
         for i in range(4):
             mapTools.drawSquare([33+i,9],mapTools.white)
         mapTools.screen.blit(mapTools.screenText,[33*mapTools.boxSize,9*mapTools.boxSize])
 
+    #Prints who's turn it is on right hand panel
     def turnText(self):
         mapTools.screenText = mapTools.font.render('Turn: ' + str(self.turn()[0]),True,mapTools.black)
         for i in range(8):
@@ -290,6 +307,7 @@ class controller:
             for p in c:
                 grid[p[1]][p[0]]=5
 
+    #Prints all possible moves for the selected figure on board
     def showMoves(self):
         if self.selectedFig!=None:
             if self.turn()[1].moveReady==True:
@@ -307,6 +325,7 @@ class controller:
                         for m in self.selectedFig.moveChoices(self.dice):
                             mapTools.drawSquare(m,mapTools.magenta)
 
+    #Allows player to click on a figure to select it
     def selectFig(self):
         if self.dice=='Minotaur':
             self.selectedFig = minotaur
@@ -315,6 +334,7 @@ class controller:
             if mousePos() in fpositions:
                 self.selectedFig = self.turn()[1].figs[fpositions.index(mousePos())]
 
+    #Checks if move selection is within move choices then moves the figure
     def moveFig(self):
         if self.selectedFig!=None and self.turn()[1].moveReady==True:
             if self.selectedFig!=minotaur:
@@ -327,10 +347,12 @@ class controller:
             elif self.selectedFig==minotaur:
                 self.selectedFig.move(mousePos())
 
+    #If in cheat mode, forces the turn to the next player with new button
     def forceTurn(self):
         if mousePos() == [33, 12]:
             self.nextTurn()
 
+    #If in cheat mode, forces the dice to the next, non-random, number, within initiating the next turn
     def forceRoll(self):
         if mousePos() == [33,14]:
             dice = self.getDice()
@@ -346,8 +368,9 @@ class controller:
                 self.selectedFig=None
             elif dice == 3:
                 self.selectedFig=None
-            self.setDice(dice)
+            self.dice=dice
 
+    #Draws buttons for force turn and force roll on the right hand panel if cheat mode is enabled
     def drawNewButtons(self):
         mapTools.drawSquare([33,12],mapTools.grey)
         mapTools.drawSquare([33,14],mapTools.grey)
@@ -434,6 +457,7 @@ def main():
         if cheatmode == True:
             controller.drawNewButtons()
 
+        #Draws figures on board and move choices if a figure is selected
         if controller.selectedFig!=None:
             controller.showMoves()
         walls.drawMovingWall()
@@ -443,5 +467,6 @@ def main():
         mapTools.pygame.display.flip()
     mapTools.pygame.quit()
 
+#Run main method
 if __name__=='__main__':
     main()

@@ -16,7 +16,8 @@ boardSize=(800,800)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption('Minotaur')
 
-
+#Subroutine to create a list for one row on the board. Sets static wall to 1 and free space to 0
+#Format is r(number of fixed walls, number of free spaces, number of fixed walls, number of free spaces, ...)
 def r(*entries):
     row = [1]
     state = True
@@ -30,6 +31,7 @@ def r(*entries):
     row.append(1)
     return row
 
+#Create the template for all static walls
 fixedWalls = [r(0,30),
            r(30),
           r(30),
@@ -63,26 +65,31 @@ fixedWalls = [r(0,30),
           r(30),
           r(0,30)]
 
+#All grid positions of movable walls that are placed on board at the start
 walls = [[[3,4],[3,5]],[[28,4],[28,5]],
          [[9,9],[10,9]],[[21,9],[22,9]],
          [[9,22],[10,22]],[[21,22],[22,22]],
          [[3,26],[3,27]],[[28,26],[28,27]]]
 
-startpoints= [[[1,1],[1,2],[2,1]],
-           [[29,1],[30,1],[30,2]],
-           [[1,29],[2,30],[1,30]],
-           [[29,30],[30,29],[30,30]]]
+#Defining where the start positions of all the figures are
+startpoints= [[[1,1],[1,2],[2,1]], #Blue
+           [[29,1],[30,1],[30,2]], #Red
+           [[1,29],[2,30],[1,30]], #Yellow
+           [[29,30],[30,29],[30,30]]] #White
 
-finishpoints = [[[14,14],[15,14],[14,15]],
-                [[16,14],[17,14],[17,15]],
-                [[14,16],[14,17],[15,17]],
-                [[16,17],[17,17],[17,16]]]
+#Defining where the finish points for each player are
+finishpoints = [[[14,14],[15,14],[14,15]], #Blue
+                [[16,14],[17,14],[17,15]], #Red
+                [[14,16],[14,17],[15,17]], #Yellow
+                [[16,17],[17,17],[17,16]]] #White
 
+#The true starting points of the minotaur, i.e. where it can jump to from the centre on its first move
 minoStartpoints=[[14,13],[15,13],[16,13],[17,13],
                  [13,14],[13,15],[13,16],[13,17],
                  [18,14],[18,15],[18,16],[18,17],
                  [14,18],[15,18],[16,18],[17,18]]
 
+#RGB colour definitions for pygame drawing
 darkGreen = (0,100,100)
 lightGreen = (128,255,0)
 blue = (0,128,255)
@@ -94,7 +101,7 @@ darkGrey = (100,100,100)
 black = (10,10,10)
 magenta = (128,0,128)
 
-
+#Defining the size of one grid box on the board
 boxSize=size[1]/len(fixedWalls)
 font = pygame.font.SysFont(None,25)
 
@@ -153,6 +160,7 @@ def drawWalls():
         pygame.draw.rect(screen,grey,((w0[0]+v0[0]/2)*boxSize+2,(w0[1]+v0[1]/2)*boxSize+2,boxSize-4,boxSize-4))
 
 #Draws an individual circle which consists of a black circle filled with figure colour
+#Used for drawing figures
 def drawCircle(pos,colour):
     pygame.draw.circle(screen,black,(boxSize*(pos[0]+0.5),boxSize*(pos[1]+0.5)),boxSize/2 - 1)
     pygame.draw.circle(screen,colour,(boxSize*(pos[0]+0.5),boxSize*(pos[1]+0.5)),boxSize/2 - 3)
