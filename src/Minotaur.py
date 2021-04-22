@@ -6,12 +6,13 @@ Created on Thu Dec 10 15:38:00 2020
 Lego Minotauraus, Covid Christmas 2020..or not..maybe a bit later
 """
 
-#Imports data and functions from mapTools.py. Note that mapTools contains both numpy and pygame
+#Imports data and functions from mapTools.py. Note that mapTools contains pygame
 import mapTools
 import sys
+import numpy as np
 
 #Board grid initiation. 0 for empty, 1 for fixed wall, 2 for grey wall, 3 for figure, 4 for minotaur, 5 for finish points
-fixedWalls = mapTools.np.array(mapTools.fixedWalls)
+fixedWalls = np.array(mapTools.fixedWalls)
 grid=fixedWalls
 for c in mapTools.finishpoints:
     for p in c:
@@ -72,7 +73,7 @@ class walls:
         self.initChoices = ([0,1],[0,-1],[1,0],[-1,0])
         if grid[p[1]][p[0]]==0 and self.movingWall==None:
             for m in self.initChoices:
-                newp = mapTools.np.array(p)+mapTools.np.array(m)
+                newp = np.array(p)+np.array(m)
                 if grid[newp[1]][newp[0]]==0:
                     self.movingWall = [p]
 
@@ -85,8 +86,8 @@ class walls:
             if newp==p:
                 self.movingWall=None
             else:
-                moveChoices = [list(mapTools.np.array(p)+mapTools.np.array(m)) for m in self.initChoices
-                                if grid[(mapTools.np.array(p)+mapTools.np.array(m))[1]][(mapTools.np.array(p)+mapTools.np.array(m))[0]]==0]
+                moveChoices = [list(np.array(p)+np.array(m)) for m in self.initChoices
+                                if grid[(np.array(p)+np.array(m))[1]][(np.array(p)+np.array(m))[0]]==0]
                 if newp in moveChoices:
                     self.movingWall.append(newp)
                     correct = True
@@ -122,7 +123,7 @@ walls = walls()
 class figure:
     def __init__(self,colour,pos,fps):
         self.colour = colour
-        self.pos = mapTools.np.array(pos)
+        self.pos = np.array(pos)
         self.play = True
         self.finishPoints=fps
         #Sets figure's grid position to 3
@@ -138,7 +139,7 @@ class figure:
                 initChoices = ([0,1],[0,-1],[1,0],[-1,0])
                 for p in posLayer:
                     for i in initChoices:
-                        newp = mapTools.np.array(p)+mapTools.np.array(i)
+                        newp = np.array(p)+np.array(i)
                         if grid[newp[1]][newp[0]]==0:
                             newPosLayer.append(list(newp))
                         elif grid[newp[1]][newp[0]]==5:
@@ -157,7 +158,7 @@ class figure:
     def move(self,pos,roll):
         if pos in self.moveChoices(roll):
             grid[self.pos[1]][self.pos[0]]=0
-            self.pos=mapTools.np.array(pos)
+            self.pos=np.array(pos)
             grid[self.pos[1]][self.pos[0]]=3
             if cheatmode == False:
                 controller.turn()[1].moveReady=False
@@ -189,7 +190,7 @@ class minotaur:
             initChoices = ([0,1],[0,-1],[1,0],[-1,0])
             for p in posLayer:
                 for i in initChoices:
-                    newp = mapTools.np.array(p)+mapTools.np.array(i)
+                    newp = np.array(p)+np.array(i)
                     if grid[newp[1]][newp[0]]==0:
                         newPosLayer.append(list(newp))
                     elif grid[newp[1]][newp[0]]==3:
@@ -210,14 +211,14 @@ class minotaur:
     def move(self,pos):
         if tuple(self.pos)==self.initPos:
             if pos in self.moveChoices():
-                self.pos=mapTools.np.array(pos)
+                self.pos=np.array(pos)
                 grid[self.pos[1]][self.pos[0]]=4
                 if cheatmode == False:
                     controller.turn()[1].moveReady=False
         else:
             if pos in self.moveChoices():
                 grid[self.pos[1]][self.pos[0]]=0
-                self.pos=mapTools.np.array(pos)
+                self.pos=np.array(pos)
                 grid[self.pos[1]][self.pos[0]]=4
                 if cheatmode == False:
                     controller.turn()[1].moveReady=False
@@ -262,7 +263,7 @@ class controller:
     #Rolls the dice and initiates next turn
     def rollDice(self):
         if mousePos() == [33,10]:
-            dice = mapTools.np.random.randint(1,7)
+            dice = np.random.randint(1,7)
             if dice == 2:
                 dice = 'Minotaur'
             if dice == 1:
@@ -315,13 +316,7 @@ class controller:
                     for m in minotaur.moveChoices():
                         mapTools.drawSquare(m,mapTools.magenta)
                 elif self.selectedFig!=None:
-                    if list(self.selectedFig.pos) in self.turn()[1].startPos and self.dice==6:
-                        for m in self.selectedFig.moveChoices(self.dice):
-                            mapTools.drawSquare(m,mapTools.magenta)
-                    elif cheatmode == True:
-                        for m in self.selectedFig.moveChoices(self.dice):
-                            mapTools.drawSquare(m,mapTools.magenta)
-                    elif list(self.selectedFig.pos) not in self.turn()[1].startPos:
+                    if (list(self.selectedFig.pos) in self.turn()[1].startPos and self.dice==6) or (cheatmode == True) or (list(self.selectedFig.pos) not in self.turn()[1].startPos):
                         for m in self.selectedFig.moveChoices(self.dice):
                             mapTools.drawSquare(m,mapTools.magenta)
 
@@ -338,11 +333,7 @@ class controller:
     def moveFig(self):
         if self.selectedFig!=None and self.turn()[1].moveReady==True:
             if self.selectedFig!=minotaur:
-                if list(self.selectedFig.pos) in self.turn()[1].startPos and self.dice==6:
-                    self.selectedFig.move(mousePos(),self.dice)
-                elif cheatmode == True:
-                    self.selectedFig.move(mousePos(),self.dice)
-                elif list(self.selectedFig.pos) not in self.turn()[1].startPos:
+                if (list(self.selectedFig.pos) in self.turn()[1].startPos and self.dice==6) or (cheatmode == True) or (list(self.selectedFig.pos) not in self.turn()[1].startPos):
                     self.selectedFig.move(mousePos(),self.dice)
             elif self.selectedFig==minotaur:
                 self.selectedFig.move(mousePos())

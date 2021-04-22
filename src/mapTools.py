@@ -7,7 +7,8 @@ pygame window initiation and contains tools for creating walls, colours, etc in 
 """
 
 import pygame
-import numpy as np
+from numpy import array as _array
+
 
 #Initial functions and params for pygame window
 pygame.init()
@@ -143,18 +144,18 @@ def drawMap(grid):
 #Draws all grey walls on board
 def drawWalls():
     for w in walls:
-        w0 = np.array(w[0])
-        w1 = np.array(w[1])
+        w0 = _array(w[0])
+        w1 = _array(w[1])
         drawSquare(w0,darkGrey)
         drawSquare(w1,darkGrey)
         v = w1-w0
         v0= w1-w0
         if v[0]>0 or v[1]>0:
-            v+=np.array([1,1])
+            v+=_array([1,1])
         elif v[1]<0:
-            v+=np.array([1,-1])
+            v+=_array([1,-1])
         elif v[0]<0:
-            v+=np.array([-1,1])
+            v+=_array([-1,1])
         pygame.draw.rect(screen,grey,(w0[0]*boxSize+2,w0[1]*boxSize+2,boxSize-4,boxSize-4))
         pygame.draw.rect(screen,grey,(w1[0]*boxSize+2,w1[1]*boxSize+2,boxSize-4,boxSize-4))
         pygame.draw.rect(screen,grey,((w0[0]+v0[0]/2)*boxSize+2,(w0[1]+v0[1]/2)*boxSize+2,boxSize-4,boxSize-4))
