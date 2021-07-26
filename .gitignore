@@ -1,4 +1,5 @@
 setup.py
 src/__pycache__
+src/classes/__pycache__
 .spyproject
 .vscode

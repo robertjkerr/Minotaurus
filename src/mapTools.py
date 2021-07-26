@@ -165,3 +165,20 @@ def drawWalls():
 def drawCircle(pos,colour):
     pygame.draw.circle(screen,black,(boxSize*(pos[0]+0.5),boxSize*(pos[1]+0.5)),boxSize/2 - 1)
     pygame.draw.circle(screen,colour,(boxSize*(pos[0]+0.5),boxSize*(pos[1]+0.5)),boxSize/2 - 3)
+
+
+#Removes duplicate values of every element in arguement list
+def removeDuplicates(inList):
+    outList=[]
+    for i in inList:
+        if i not in outList:
+            outList.append(i)
+    return outList
+
+
+#Returns mouse position as a grid position
+def mousePos():
+    pos = pygame.mouse.get_pos()
+    x = int((pos[0] - pos[0]%boxSize)/boxSize)
+    y = int((pos[1] - pos[1]%boxSize)/boxSize)
+    return [x,y]
