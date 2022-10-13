@@ -81,15 +81,19 @@ class controller:
 
     #Prints all possible moves for the selected figure on board
     def showMoves(self):
-        if self.selectedFig!=None:
-            if self.turn()[1].moveReady==True:
-                if self.dice=='Minotaur':
-                    for m in self.minotaur.moveChoices():
-                        _mapTools.drawSquare(m,_mapTools.magenta)
-                elif self.selectedFig!=None:
-                    if (list(self.selectedFig.pos) in self.turn()[1].startPos and self.dice==6) or (self.cheatmode == True) or (list(self.selectedFig.pos) not in self.turn()[1].startPos):
-                        for m in self.selectedFig.moveChoices(self.dice):
-                            _mapTools.drawSquare(m,_mapTools.magenta)
+        if self.selectedFig == None:
+            return
+
+        if self.turn()[1].moveReady!=True:
+            return
+
+        if self.dice=='Minotaur':
+            for m in self.minotaur.moveChoices():
+                _mapTools.drawSquare(m,_mapTools.magenta)
+        elif self.selectedFig!=None:
+            if (list(self.selectedFig.pos) in self.turn()[1].startPos and self.dice==6) or (self.cheatmode == True) or (list(self.selectedFig.pos) not in self.turn()[1].startPos):
+                for m in self.selectedFig.moveChoices(self.dice):
+                    _mapTools.drawSquare(m,_mapTools.magenta)
 
     #Allows player to click on a figure to select it
     def selectFig(self):
@@ -102,12 +106,17 @@ class controller:
 
     #Checks if move selection is within move choices then moves the figure
     def moveFig(self):
-        if self.selectedFig!=None and self.turn()[1].moveReady==True:
-            if self.selectedFig!=self.minotaur:
-                if (list(self.selectedFig.pos) in self.turn()[1].startPos and self.dice==6) or (self.cheatmode == True) or (list(self.selectedFig.pos) not in self.turn()[1].startPos):
-                    self.selectedFig.move(_mapTools.mousePos(),self.dice)
-            elif self.selectedFig==self.minotaur:
-                self.selectedFig.move(_mapTools.mousePos())
+        if self.selectedFig==None or self.turn()[1].moveReady!=True:
+            return
+
+        if self.selectedFig!=self.minotaur:
+            if (list(self.selectedFig.pos) in self.turn()[1].startPos \
+                and self.dice==6) or (self.cheatmode == True) \
+                or (list(self.selectedFig.pos) not in self.turn()[1].startPos):
+
+                self.selectedFig.move(_mapTools.mousePos(),self.dice)
+        elif self.selectedFig==self.minotaur:
+            self.selectedFig.move(_mapTools.mousePos())
 
     #If in cheat mode, forces the turn to the next player with new button
     def forceTurn(self):
